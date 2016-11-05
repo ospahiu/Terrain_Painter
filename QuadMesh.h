@@ -28,6 +28,7 @@ private:
 	int maxMeshSize;
 	int minMeshSize;
 	float meshDim;
+    bool reset;
 
 	int numVertices;
 	MeshVertex *vertices;
@@ -62,13 +63,14 @@ public:
 	{
 		return MaxMeshDim(minMeshSize, maxMeshSize);
 	}
-	
-	bool InitMesh(int meshSize, VECTOR3D origin, double meshLength, double meshWidth,VECTOR3D dir1, VECTOR3D dir2, Blob vec);
-	void DrawMesh(int meshSize);
-	void UpdateMesh(Blob blob);
+
+    void resetPlane();
+    bool InitMesh(int meshSize, VECTOR3D origin, double meshLength, double meshWidth,VECTOR3D dir1, VECTOR3D dir2, Blob blob);
+    void DrawMesh(int meshSize);
+    void UpdateMesh(Blob blob);
 	void SetMaterial(VECTOR3D ambient, VECTOR3D diffuse, VECTOR3D specular, double shininess);
 	void ComputeNormals();
-
+    float getInfluenceHeight(Blob &blob, const VECTOR3D &meshpt) const;
 };
 
 #endif

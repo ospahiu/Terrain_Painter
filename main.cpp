@@ -19,62 +19,14 @@ void draw_xyz();
 // Default Mesh Size
 int meshSize = 64;
 VECTOR3D mousePos;
-vector<Blob> vec;
-bool leftMouseClicked = false;
 float height = 1.5;
 float width = 1.5;
 float theta = 0;
 float phi = 45;
+float zoom = 0.0;
 
-VECTOR3D origin  = VECTOR3D(-16.0f,0.0f,16.0f);
-VECTOR3D dir1v   = VECTOR3D(1.0f, 0.0f, 0.0f);
-VECTOR3D dir2v   = VECTOR3D(0.0f, 0.0f,-1.0f);
-VECTOR3D ambient = VECTOR3D(0.0f, 0.05f, 0.0f);
-VECTOR3D diffuse = VECTOR3D(0.4f, 0.8f, 0.4f);
-VECTOR3D specular = VECTOR3D(0.04f, 0.04f, 0.04f);
-float shininess = 0.2;
-float cameraRotate = 0.0;
+
 QuadMesh groundMesh(meshSize, 16.0);
-
-
-void clearTerrain() {
-    vec.clear();
-    //groundMesh.InitMesh(meshSize, origin, 32.0, 32.0, dir1v, dir2v, vec);
-}
-
-void keyPressed(unsigned char key, int x, int y) {
-    switch (key) {
-        case 'w':
-            if (phi > 5) {
-                phi -= 5;
-            }
-            break;
-        case 's':
-            if (phi < 90) {
-                phi+=5;
-            }
-            break;
-        case 'a':
-            theta+=5;
-            break;
-        case 'd':
-            theta-=5;
-            break;
-        case 27:
-            clearTerrain();
-            break;
-        default:
-            break;
-    }
-}
-
-void angleToCartesian(double rho, double phi, double theta) {
-
-    CAMERA_X_COORD = rho * sin(phi) * cos(theta);
-    CAMERA_Y_COORD = rho * cos(phi);
-    CAMERA_Z_COORD = rho * sin(phi) * sin(theta);
-
-}
 
 int main(int argc, char **argv) {
     glutInit(&argc, argv); // Initialize GLUT.
@@ -85,7 +37,6 @@ int main(int argc, char **argv) {
     initOpenGl(); // Initialize scene settings.
     glutDisplayFunc(display); // Register display callback handler for window re-paint
     glutReshapeFunc(reshape);
-
     glutPassiveMotionFunc(mouse_func);
     glutMouseFunc(onMouseButton);
     // I/O and Animation.
@@ -98,6 +49,16 @@ int main(int argc, char **argv) {
     return 0;
 }
 
+void angleToCartesian(double rho, double phi, double theta) {
+
+    CAMERA_X_COORD = rho * sin(phi) * cos(theta);
+    CAMERA_Y_COORD = rho * cos(phi);
+    CAMERA_Z_COORD = rho * sin(phi) * sin(theta);
+
+}
+
+/// Mouse position event handler. Parameters are the current
+/// cartesian positiion of the mouse cursor over the glut window.
 void mouse_func(int x, int y)
 {
 
@@ -105,46 +66,6 @@ void mouse_func(int x, int y)
 //    cout<<mousePos.x;
 //    cout<<mousePos.y;
 //    cout<<mousePos.z<<endl;
-    glutPostRedisplay();
-}
-
-void specialInputUp(int key, int x, int y) {
-    switch (key) {
-        case GLUT_KEY_UP:
-            if (height < 3.0) {
-                height += 0.5;
-                cout<<"up pressed"<<endl;
-            }
-            break;
-        case GLUT_KEY_DOWN:
-            if (height > - 3.0) {
-                height -= 0.5;
-                cout<<"down pressed"<<endl;
-            }
-            break;
-        case GLUT_LEFT_BUTTON:
-            if (width > - 12.0) {
-                width -= 3;
-            }
-            break;
-        case GLUT_RIGHT_BUTTON:
-            if (width < 12.0) {
-                width += 3;
-            }
-            break;
-        default:
-            break;
-    }
-    glutPostRedisplay();
-}
-
-void onMouseButton(int button, int state, int x, int y) {
-    if (button == GLUT_LEFT_BUTTON) {
-        leftMouseClicked = !leftMouseClicked;
-        vec.push_back(Blob(width, height, mousePos.x, mousePos.z));
-        groundMesh.InitMesh(meshSize, origin, 32.0, 32.0, dir1v, dir2v, Blob(width, height, mousePos.x, mousePos.z));
-    }
-
     glutPostRedisplay();
 }
 
@@ -156,30 +77,18 @@ void display() {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // Clear the color buffer
     glLoadIdentity();
     setupCamera();
-
     // Set plane material properties
     glColor3d(1.0, 0.627, 0); // Yellow Surface.
     // Set up ground quad mesh
-
-//    groundMesh(meshSize, 16.0);
-//    groundMesh.SetMaterial(ambient,diffuse,specular,shininess);
-//    groundMesh.InitMesh(meshSize, origin, 32.0, 32.0, dir1v, dir2v, vec);
     groundMesh.ComputeNormals();
     groundMesh.DrawMesh(meshSize);
-
-
+    cout<<zoom<<endl;
     // Misc drawing
     //draw_xyz();
     renderText();
-
-    // Apply transformations to construct submarine
     glFlush();  // Render now
     glutSwapBuffers();
-    //delete groundMesh;
 }
-
-
-
 
 /// Draw XYZ axis lines.
 /// @return void
@@ -215,12 +124,17 @@ void draw_xyz() {// Quad mesh
 void setupCamera() {
     //double phi = 90* PI / 180;
     //theta = 0* PI / 180;
-    angleToCartesian(30.00, phi* PI / 180, theta* PI / 180);
+    angleToCartesian(30.00, getRad(phi), getRad(theta));
     gluLookAt(CAMERA_X_COORD, CAMERA_Y_COORD, CAMERA_Z_COORD, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0);
-//    glRotatef(cameraRotate, 0.0, 1.0, 0.0);
-    glScalef(0.75, 0.75, 0.75);
-    //glTranslatef(0, -7, 0);
-    cout<<phi<<endl;
+    glScalef(0.75+zoom, 0.75+zoom, 0.75+zoom);
+}
+
+/// Convert degree angles to radians for computing radian
+/// parameters.
+/// @param float angle The angle given in degrees.
+/// @return float The angle converted to a Rad degree type.
+float getRad(float angle) {
+    return angle * PI / 180;
 }
 
 /// Function is passed as a callable to resize geometry according to
@@ -297,9 +211,19 @@ void initOpenGl() {// Setup viewport/projection.
     glDepthFunc(GL_LESS);
     glEnable(GL_COLOR_MATERIAL);
     glEnable(GL_LIGHTING);
+
+    //First Plane Mesh initialization.
     groundMesh.SetMaterial(ambient,diffuse,specular,shininess);
     groundMesh.InitMesh(meshSize, origin, 32.0, 32.0, dir1v, dir2v, Blob(0,0,0,0));
 
+}
+
+/// Clears terrain of all Blobs. All previously drawn on information
+/// is cleared, and original mesh is restored.
+/// @return void
+void clearTerrain() {
+    groundMesh.resetPlane();
+    groundMesh.InitMesh(meshSize, origin, 32.0, 32.0, dir1v, dir2v, Blob(0,0,0,0));
 }
 
 /// Timer function callable used to animate GLUT scene. Variable incrementing
@@ -310,15 +234,13 @@ void initOpenGl() {// Setup viewport/projection.
 void timer(int value) {
 
     glutTimerFunc(16, timer, 0);
-    cameraRotate+= 0.1;
-    if (cameraRotate > 360) {
-        cameraRotate = 0.0;
-    }
     glutPostRedisplay();
 }
 
-
-
+/// Converts Mouse x, y glut screen position to OpenGL
+/// cartesian coordinates.
+/// @param int x The x-position of the active mouse cursor.
+/// @param int y The y-position of the active mouse cursor.
 VECTOR3D getOGLPos(int x, int y)
 {
     GLint viewport[4];
@@ -334,4 +256,91 @@ VECTOR3D getOGLPos(int x, int y)
     glReadPixels( x, int(winY), 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &winZ );
     gluUnProject( winX, winY, winZ, modelview, projection, viewport, &posX, &posY, &posZ);
     return VECTOR3D(posX, posY, posZ);
+}
+
+/// Normal key pressed event handler.
+/// @param int key The key pressed.
+/// @param int x
+/// @param int y
+/// @return void
+void keyPressed(unsigned char key, int x, int y) {
+    switch (tolower(key)) {
+        case 'w':
+            if (phi > 5) {
+                phi -= 5;
+            }
+            break;
+        case 's':
+            if (phi < 90) {
+                phi+=5;
+            }
+            break;
+        case 'a':
+            theta+=1;
+            break;
+        case 'd':
+            theta-=1;
+            break;
+        case 'e':
+            if (zoom < 1.5) {
+                zoom += 0.05;
+            }
+            break;
+        case 'q':
+            if (zoom > -0.5) {
+                zoom -= 0.05;
+            }
+            break;
+        case 27:
+            clearTerrain();
+            break;
+        default:
+            break;
+    }
+}
+
+/// Event handlers for mouse button clicks. A blob is deposited
+/// with the user chosen parameters on every single left button
+/// mouse click.
+void onMouseButton(int button, int state, int x, int y) {
+    if (button == GLUT_LEFT_BUTTON) {
+        Blob blobToDeposit(width, height, mousePos.x, mousePos.z);
+        groundMesh.InitMesh(meshSize, origin, 32.0, 32.0, dir1v, dir2v, blobToDeposit);
+    }
+    glutPostRedisplay();
+}
+
+/// Special key released event handler.
+/// @param int key The key pressed.
+/// @param int x
+/// @param int y
+/// @return void
+void specialInputUp(int key, int x, int y) {
+    switch (key) {
+        case GLUT_KEY_UP:
+            if (height < 3.0) {
+                height += 0.5;
+                cout<<"up pressed"<<endl;
+            }
+            break;
+        case GLUT_KEY_DOWN:
+            if (height > - 3.0) {
+                height -= 0.5;
+                cout<<"down pressed"<<endl;
+            }
+            break;
+        case GLUT_LEFT_BUTTON:
+            if (width > - 12.0) {
+                width -= 3;
+            }
+            break;
+        case GLUT_RIGHT_BUTTON:
+            if (width < 12.0) {
+                width += 3;
+            }
+            break;
+        default:
+            break;
+    }
+    glutPostRedisplay();
 }

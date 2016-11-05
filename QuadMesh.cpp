@@ -23,6 +23,7 @@ QuadMesh::QuadMesh(int maxMeshSize, float meshDim)
 	numQuads = 0;
 	quads = NULL;
 	numFacesDrawn = 0;
+    reset = false;
 	
 	this->maxMeshSize = maxMeshSize < minMeshSize ? minMeshSize : maxMeshSize;
 	this->meshDim = meshDim;
@@ -78,10 +79,13 @@ bool QuadMesh::CreateMemory()
 
 	return true;
 }
-		
+
+void QuadMesh::resetPlane() {
+    this->reset = true;
+}
 
 
-bool QuadMesh::InitMesh(int meshSize,VECTOR3D origin,double meshLength,double meshWidth,VECTOR3D dir1, VECTOR3D dir2, Blob vec)
+bool QuadMesh::InitMesh(int meshSize,VECTOR3D origin,double meshLength,double meshWidth,VECTOR3D dir1, VECTOR3D dir2, Blob blob)
 {
 
     VECTOR3D o;
@@ -121,22 +125,13 @@ bool QuadMesh::InitMesh(int meshSize,VECTOR3D origin,double meshLength,double me
 			meshpt.y = o.y + j * v1.y;
 			meshpt.z = o.z + j * v1.z;
 
-            float height = 0.0;
-
-            //if (!vec.isEmpty()) {
-            //for(int blob = 0; blob < vec.size(); blob++) {
-            float r = sqrt(pow((vec.getX() - meshpt.x), 2) + pow((vec.getZ() - meshpt.z), 2));
-//                if (r == 0) {
-//                    continue;
-//                }
-            height += vec.getHeight() * exp(-vec.getWidth() * pow(r, 2));
-            //}
-            //}
-
-            //meshpt.y += height;
-            //std::cout<< height << std::endl;
-            vertices[currentVertex].position.UpdateOnlyY(meshpt.x, meshpt.y+height, meshpt.z);
-            //height = 0;
+            float height = getInfluenceHeight(blob, meshpt);
+            if (reset) {
+                vertices[currentVertex].position.Set(meshpt.x, 0, meshpt.z);
+            }
+            else {
+                vertices[currentVertex].position.UpdateOnlyY(meshpt.x, meshpt.y + height, meshpt.z);
+            }
 			currentVertex++;
 		}
 		// go to next row in mesh (negative z direction)
@@ -159,19 +154,22 @@ bool QuadMesh::InitMesh(int meshSize,VECTOR3D origin,double meshLength,double me
 			currentQuad++;
 		}
 	}
-
+    this->reset = false;
     this->ComputeNormals();
-
-
 	return true;
 
 }
 
-//void QuadMesh::UpdateMesh(Blob blob) {
-//    for(int i=0; i< meshSize+1; i++) {
-//        for (int j = 0; j < meshSize + 1; j++) {}
-//    }
-//}
+float QuadMesh::getInfluenceHeight(Blob &blob, const VECTOR3D &meshpt) const {
+    float height = 0.0;
+    if (!blob.isEmpty()) {
+        float r = sqrt(pow((blob.getX() - meshpt.x), 2) + pow((blob.getZ() - meshpt.z), 2));
+        if (r != 0) {
+            height += blob.getHeight() * exp(-blob.getWidth() * pow(r, 2));
+        }
+    }
+    return height;
+}
 
 void QuadMesh::DrawMesh(int meshSize)
 {
