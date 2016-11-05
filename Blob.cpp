@@ -23,3 +23,7 @@ double Blob::getWidth() { return this->width; }
 double Blob::getX() { return this->x_pos; }
 
 double Blob::getZ() { return this->z_pos;}
+
+bool Blob::isEmpty() {
+    return this->height + this->width + this->x_pos + this->z_pos == 0;
+}

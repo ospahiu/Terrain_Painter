@@ -8,7 +8,7 @@
 
 using namespace std;
 
-QuadMesh *groundMesh = NULL;
+//QuadMesh groundMesh;
 
 void draw_xyz();
 
@@ -18,44 +18,32 @@ VECTOR3D mousePos;
 vector<Blob> vec;
 bool leftMouseClicked = false;
 float height = 1.5;
-char buffer [10];
-
-char result[150];
-//const char *const HELP_MENU_STRING = result;
-
-std::string one="Blob Creator:\nHeight Increase - Up Arrow Key\nHeight Increase - Up Arrow Key\nHeight Decrease - Down Arrow Key\nCurrent Height -";
-
-const char * con = one.c_str();
-
-void setCurrentHeight() {
-    sprintf(buffer, "%f", height);
-    cout<<buffer;
-    //one.append(buffer);
-}
-
 float width = 1.5;
 
+VECTOR3D origin  = VECTOR3D(-16.0f,0.0f,16.0f);
+VECTOR3D dir1v   = VECTOR3D(1.0f, 0.0f, 0.0f);
+VECTOR3D dir2v   = VECTOR3D(0.0f, 0.0f,-1.0f);
+VECTOR3D ambient = VECTOR3D(0.0f, 0.05f, 0.0f);
+VECTOR3D diffuse = VECTOR3D(0.4f, 0.8f, 0.4f);
+VECTOR3D specular = VECTOR3D(0.04f, 0.04f, 0.04f);
+float shininess = 0.2;
+float cameraRotate = 0.0;
+QuadMesh groundMesh(meshSize, 16.0);
 
-//void myFunc();
-//
-//void myFunc() {
-//    GLint viewport[4];
-//    glGetIntegerv(GL_VIEWPORT, viewport);
-//    GLdouble modelview[16]; // Where The 16 Doubles Of The Modelview Matrix Are To Be Stored
-//    glGetDoublev(GL_MODELVIEW_MATRIX, modelview); // Retrieve The Modelview Matrix
-//    GLdouble projection[16]; // Where The 16 Doubles Of The Projection Matrix Are To Be Stored
-//    glGetDoublev(GL_PROJECTION_MATRIX, projection); // Retrieve The Projection Matrix
-//    POINT mouse; // Stores The X And Y Coords For The Current Mouse Position
-//    GetCursorPos(&mouse); // Gets The Current Cursor Coordinates (Mouse Coordinates)
-//    ScreenToClient(hWnd, &mouse);
-//    ScreenToClient()
-//    GLfloat winX, winY, winZ; // Holds Our X, Y and Z Coordinates
-//    winX = (float)mouse.x; // Holds The Mouse X Coordinate
-//    winY = (float)mouse.y; // Holds The Mouse Y Coordinate
-//    winY = (float)viewport[3] - winY; // Subtract The Current Mouse Y Coordinate From TheScreen Height.
-//    glReadPixels(winX, winY, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &winZ);
-//    GLdouble posX, posY, posZ; // Hold The Final Values
-//}
+
+void clearTerrain() {
+    vec.clear();
+}
+
+void keyPressed(unsigned char key, int x, int y) {
+    switch (key) {
+        case 27:
+            clearTerrain();
+            break;
+        default:
+            break;
+    }
+}
 
 
 int main(int argc, char **argv) {
@@ -73,7 +61,7 @@ int main(int argc, char **argv) {
     // I/O and Animation.
 //    glutSpecialFunc(specialInput);
     glutSpecialUpFunc(specialInputUp);
-//    glutKeyboardFunc(keyPressed);
+    glutKeyboardFunc(keyPressed);
 //    glutKeyboardUpFunc(keyUp);
     glutTimerFunc(0, timer, 0);
     glutMainLoop(); // Enter the infinitely event-processing loop
@@ -113,58 +101,45 @@ void specialInputUp(int key, int x, int y) {
 void onMouseButton(int button, int state, int x, int y) {
     if (button == GLUT_LEFT_BUTTON) {
         leftMouseClicked = !leftMouseClicked;
-        vec.push_back(Blob(3.0, height, mousePos.x, mousePos.z));
-        //vec.push_back(Blob(2.0, 3.0, 7.0, 6.0));
-        //vec.push_back(Blob(5.0, 8.0, 4.0, 7.0));
-        //vec.push_back(Blob(6.0, 6.0, 7.5, 8.0));
+        //vec.push_back(Blob(3.0, height, mousePos.x, mousePos.z));
+        groundMesh.InitMesh(meshSize, origin, 32.0, 32.0, dir1v, dir2v, Blob(3.0, height, mousePos.x, mousePos.z));
     }
 
     glutPostRedisplay();
 }
 
-/// Display function constructs all elements in the scene, including the submarine,
+/// Display function constructs all elements in the scene, including the plane,
 /// as well as camera. Scene is colourized and scaled in this function.
 /// @return void
 void display() {
-    glClearColor(0.2f, 0.2f, 0.2f, 1.0f); // Set background color to black and opaque
+    glClearColor(0.2f, 0.2f, 0.2f, 1.0f); // Set background color to grey and opaque
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // Clear the color buffer
     glLoadIdentity();
     setupCamera();
 
-    // Set submarine material properties
-    glColor3d(1.0, 0.627, 0); // Grey submarine.
-    setCurrentHeight();
+    // Set plane material properties
+    glColor3d(1.0, 0.627, 0); // Yellow Surface.
     // Set up ground quad mesh
-    VECTOR3D origin  = VECTOR3D(-16.0f,0.0f,16.0f);
-    VECTOR3D dir1v   = VECTOR3D(1.0f, 0.0f, 0.0f);
-    VECTOR3D dir2v   = VECTOR3D(0.0f, 0.0f,-1.0f);
-    groundMesh = new QuadMesh(meshSize, 16.0);
 
-    VECTOR3D ambient = VECTOR3D(0.0f, 0.05f, 0.0f);
-    VECTOR3D diffuse = VECTOR3D(0.4f, 0.8f, 0.4f);
-    VECTOR3D specular = VECTOR3D(0.04f, 0.04f, 0.04f);
-    float shininess = 0.2;
-    groundMesh->SetMaterial(ambient,diffuse,specular,shininess);
-    //vec.push_back(Blob(8.0, 6.0, mousePos.x, mousePos.z));
-
-
-
-    groundMesh->InitMesh(meshSize, origin, 32.0, 32.0, dir1v, dir2v, vec);
-
-
-    groundMesh->ComputeNormals();
-    groundMesh->DrawMesh(meshSize);
+//    groundMesh(meshSize, 16.0);
+//    groundMesh.SetMaterial(ambient,diffuse,specular,shininess);
+//    groundMesh.InitMesh(meshSize, origin, 32.0, 32.0, dir1v, dir2v, vec);
+    groundMesh.ComputeNormals();
+    groundMesh.DrawMesh(meshSize);
 
 
     // Misc drawing
-    draw_xyz();
+    //draw_xyz();
     renderText();
 
     // Apply transformations to construct submarine
     glFlush();  // Render now
     glutSwapBuffers();
-
+    //delete groundMesh;
 }
+
+
+
 
 /// Draw XYZ axis lines.
 /// @return void
@@ -201,6 +176,7 @@ void setupCamera() {
     gluLookAt(CAMERA_X, CAMERA_Y, CAMERA_Z, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0);
     glScalef(0.75, 0.75, 0.75);
     glTranslatef(0, -7, -7);
+    glRotatef(cameraRotate, 0.0, 1.0, 0.0);
 }
 
 /// Function is passed as a callable to resize geometry according to
@@ -234,7 +210,7 @@ void renderText() {
     glLoadIdentity();
     glColor3f(1.0, 1.0, 1.0);
     glRasterPos2i(20, 600);
-    glutBitmapString(GLUT_BITMAP_HELVETICA_12, reinterpret_cast<const unsigned char *> (con));
+    glutBitmapString(GLUT_BITMAP_HELVETICA_12, reinterpret_cast<const unsigned char *> (HELP_MENU_STRING));
     glMatrixMode(GL_PROJECTION);
     glPopMatrix();
     glMatrixMode(GL_MODELVIEW);
@@ -277,6 +253,8 @@ void initOpenGl() {// Setup viewport/projection.
     glDepthFunc(GL_LESS);
     glEnable(GL_COLOR_MATERIAL);
     glEnable(GL_LIGHTING);
+    groundMesh.SetMaterial(ambient,diffuse,specular,shininess);
+    groundMesh.InitMesh(meshSize, origin, 32.0, 32.0, dir1v, dir2v, Blob(0.0,0.0,0.0,0.0));
 
 }
 
@@ -288,6 +266,10 @@ void initOpenGl() {// Setup viewport/projection.
 void timer(int value) {
 
     glutTimerFunc(16, timer, 0);
+    cameraRotate+= 0.1;
+    if (cameraRotate > 360) {
+        cameraRotate = 0.0;
+    }
     glutPostRedisplay();
 }
 

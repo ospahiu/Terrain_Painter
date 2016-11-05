@@ -33,7 +33,11 @@ static const int WINDOW_SPAWN_Y = 10;
 
 static const int WINDOW_SPAWN_X = 10;
 
-
+const char *const HELP_MENU_STRING = "Blob Creator:\n"
+        "Height Increase - Up Arrow Key\n"
+        "Height Decrease - Down Arrow Key\n"
+        "Turn Camera Mode On - F1\n"
+        "Clear Terrain - Esc";
 
 void setupCamera();
 

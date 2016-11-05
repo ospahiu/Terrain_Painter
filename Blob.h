@@ -17,6 +17,7 @@ class Blob {
         double getZ();
         double getWidth();
         double getHeight();
+        bool isEmpty();
         Blob(float a, float b, float x, float z);
 
     private:
