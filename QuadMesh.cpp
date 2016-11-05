@@ -8,6 +8,7 @@
 #include <vector>
 #include <iostream>
 #include "QuadMesh.h"
+#include <unordered_map>
 #include "Blob.h"
 
 using namespace std;
@@ -80,10 +81,8 @@ bool QuadMesh::CreateMemory()
 		
 
 
-bool QuadMesh::InitMesh(int meshSize,VECTOR3D origin,double meshLength,double meshWidth,VECTOR3D dir1, VECTOR3D dir2, Blob vec)
+bool QuadMesh::InitMesh(int meshSize,VECTOR3D origin,double meshLength,double meshWidth,VECTOR3D dir1, VECTOR3D dir2, vector<Blob> vec)
 {
-
-    //vec.push_back(Blob(3.0, 6.0, 8.0, 8.0));
 
     VECTOR3D o;
 	int currentVertex = 0; 	  
@@ -124,13 +123,13 @@ bool QuadMesh::InitMesh(int meshSize,VECTOR3D origin,double meshLength,double me
 
             float height = 0.0;
 
-            if (!vec.isEmpty()) {
-                //for(int blob = 0; blob < vec.size(); blob++) {
-                float r = sqrt(pow((vec.getX() - meshpt.x), 2) + pow((vec.getZ() - meshpt.z), 2));
-//                if (r == 0) {
-//                    continue;
-//                }
-                height += vec.getHeight() * exp(-vec.getWidth() * pow(r, 2));
+            //if (!vec.isEmpty()) {
+            for(int blob = 0; blob < vec.size(); blob++) {
+                float r = sqrt(pow((vec[blob].getX() - meshpt.x), 2) + pow((vec[blob].getZ() - meshpt.z), 2));
+                if (r == 0) {
+                    continue;
+                }
+                height += vec[blob].getHeight() * exp(-vec[blob].getWidth() * pow(r, 2));
             }
             //}
 
@@ -163,7 +162,9 @@ bool QuadMesh::InitMesh(int meshSize,VECTOR3D origin,double meshLength,double me
 
     this->ComputeNormals();
 
+
 	return true;
+
 }
 
 void QuadMesh::DrawMesh(int meshSize)

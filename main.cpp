@@ -10,6 +10,10 @@ using namespace std;
 
 //QuadMesh groundMesh;
 
+float CAMERA_X_COORD = 0.0;
+float CAMERA_Y_COORD = 0.0;
+float CAMERA_Z_COORD = 0.0;
+
 void draw_xyz();
 
 // Default Mesh Size
@@ -19,6 +23,8 @@ vector<Blob> vec;
 bool leftMouseClicked = false;
 float height = 1.5;
 float width = 1.5;
+float theta = 0;
+float phi = 45;
 
 VECTOR3D origin  = VECTOR3D(-16.0f,0.0f,16.0f);
 VECTOR3D dir1v   = VECTOR3D(1.0f, 0.0f, 0.0f);
@@ -33,10 +39,27 @@ QuadMesh groundMesh(meshSize, 16.0);
 
 void clearTerrain() {
     vec.clear();
+    groundMesh.InitMesh(meshSize, origin, 32.0, 32.0, dir1v, dir2v, vec);
 }
 
 void keyPressed(unsigned char key, int x, int y) {
     switch (key) {
+        case 'w':
+            if (phi > 5) {
+                phi -= 5;
+            }
+            break;
+        case 's':
+            if (phi < 90) {
+                phi+=5;
+            }
+            break;
+        case 'a':
+            theta+=5;
+            break;
+        case 'd':
+            theta-=5;
+            break;
         case 27:
             clearTerrain();
             break;
@@ -45,6 +68,13 @@ void keyPressed(unsigned char key, int x, int y) {
     }
 }
 
+void angleToCartesian(double rho, double phi, double theta) {
+
+    CAMERA_X_COORD = rho * sin(phi) * cos(theta);
+    CAMERA_Y_COORD = rho * cos(phi);
+    CAMERA_Z_COORD = rho * sin(phi) * sin(theta);
+
+}
 
 int main(int argc, char **argv) {
     glutInit(&argc, argv); // Initialize GLUT.
@@ -92,6 +122,16 @@ void specialInputUp(int key, int x, int y) {
                 cout<<"down pressed"<<endl;
             }
             break;
+        case GLUT_LEFT_BUTTON:
+            if (width > - 12.0) {
+                width -= 3;
+            }
+            break;
+        case GLUT_RIGHT_BUTTON:
+            if (width < 12.0) {
+                width += 3;
+            }
+            break;
         default:
             break;
     }
@@ -101,8 +141,8 @@ void specialInputUp(int key, int x, int y) {
 void onMouseButton(int button, int state, int x, int y) {
     if (button == GLUT_LEFT_BUTTON) {
         leftMouseClicked = !leftMouseClicked;
-        //vec.push_back(Blob(3.0, height, mousePos.x, mousePos.z));
-        groundMesh.InitMesh(meshSize, origin, 32.0, 32.0, dir1v, dir2v, Blob(3.0, height, mousePos.x, mousePos.z));
+        vec.push_back(Blob(width, height, mousePos.x, mousePos.z));
+        groundMesh.InitMesh(meshSize, origin, 32.0, 32.0, dir1v, dir2v, vec);
     }
 
     glutPostRedisplay();
@@ -173,10 +213,14 @@ void draw_xyz() {// Quad mesh
 /// Setup camera attributes.
 /// @return void
 void setupCamera() {
-    gluLookAt(CAMERA_X, CAMERA_Y, CAMERA_Z, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0);
+    //double phi = 90* PI / 180;
+    //theta = 0* PI / 180;
+    angleToCartesian(30.00, phi* PI / 180, theta* PI / 180);
+    gluLookAt(CAMERA_X_COORD, CAMERA_Y_COORD, CAMERA_Z_COORD, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0);
+//    glRotatef(cameraRotate, 0.0, 1.0, 0.0);
     glScalef(0.75, 0.75, 0.75);
-    glTranslatef(0, -7, -7);
-    glRotatef(cameraRotate, 0.0, 1.0, 0.0);
+    //glTranslatef(0, -7, 0);
+    cout<<phi<<endl;
 }
 
 /// Function is passed as a callable to resize geometry according to
@@ -254,7 +298,7 @@ void initOpenGl() {// Setup viewport/projection.
     glEnable(GL_COLOR_MATERIAL);
     glEnable(GL_LIGHTING);
     groundMesh.SetMaterial(ambient,diffuse,specular,shininess);
-    groundMesh.InitMesh(meshSize, origin, 32.0, 32.0, dir1v, dir2v, Blob(0.0,0.0,0.0,0.0));
+    groundMesh.InitMesh(meshSize, origin, 32.0, 32.0, dir1v, dir2v, vec);
 
 }
 

@@ -6,6 +6,7 @@
 
 #ifndef A2_MAIN_H
 #define A2_MAIN_H
+#define PI 3.14159265
 
 const GLfloat light_position0[] = {6.0, 12.0, 0.0, 1.0};
 
@@ -34,8 +35,11 @@ static const int WINDOW_SPAWN_Y = 10;
 static const int WINDOW_SPAWN_X = 10;
 
 const char *const HELP_MENU_STRING = "Blob Creator:\n"
+        "Paint Terrain - Left Mouse Click\n"
         "Height Increase - Up Arrow Key\n"
         "Height Decrease - Down Arrow Key\n"
+        "Width Increase - Right Arrow Key\n"
+        "Width Decrease - Left Arrow Key\n"
         "Turn Camera Mode On - F1\n"
         "Clear Terrain - Esc";
 
