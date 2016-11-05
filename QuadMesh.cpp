@@ -81,7 +81,7 @@ bool QuadMesh::CreateMemory()
 		
 
 
-bool QuadMesh::InitMesh(int meshSize,VECTOR3D origin,double meshLength,double meshWidth,VECTOR3D dir1, VECTOR3D dir2, vector<Blob> vec)
+bool QuadMesh::InitMesh(int meshSize,VECTOR3D origin,double meshLength,double meshWidth,VECTOR3D dir1, VECTOR3D dir2, Blob vec)
 {
 
     VECTOR3D o;
@@ -124,18 +124,18 @@ bool QuadMesh::InitMesh(int meshSize,VECTOR3D origin,double meshLength,double me
             float height = 0.0;
 
             //if (!vec.isEmpty()) {
-            for(int blob = 0; blob < vec.size(); blob++) {
-                float r = sqrt(pow((vec[blob].getX() - meshpt.x), 2) + pow((vec[blob].getZ() - meshpt.z), 2));
-                if (r == 0) {
-                    continue;
-                }
-                height += vec[blob].getHeight() * exp(-vec[blob].getWidth() * pow(r, 2));
-            }
+            //for(int blob = 0; blob < vec.size(); blob++) {
+            float r = sqrt(pow((vec.getX() - meshpt.x), 2) + pow((vec.getZ() - meshpt.z), 2));
+//                if (r == 0) {
+//                    continue;
+//                }
+            height += vec.getHeight() * exp(-vec.getWidth() * pow(r, 2));
+            //}
             //}
 
             //meshpt.y += height;
             //std::cout<< height << std::endl;
-            vertices[currentVertex].position.Set(meshpt.x, meshpt.y+height, meshpt.z);
+            vertices[currentVertex].position.UpdateOnlyY(meshpt.x, meshpt.y+height, meshpt.z);
             //height = 0;
 			currentVertex++;
 		}
@@ -166,6 +166,12 @@ bool QuadMesh::InitMesh(int meshSize,VECTOR3D origin,double meshLength,double me
 	return true;
 
 }
+
+//void QuadMesh::UpdateMesh(Blob blob) {
+//    for(int i=0; i< meshSize+1; i++) {
+//        for (int j = 0; j < meshSize + 1; j++) {}
+//    }
+//}
 
 void QuadMesh::DrawMesh(int meshSize)
 {

@@ -63,9 +63,9 @@ public:
 		return MaxMeshDim(minMeshSize, maxMeshSize);
 	}
 	
-	bool InitMesh(int meshSize, VECTOR3D origin, double meshLength, double meshWidth,VECTOR3D dir1, VECTOR3D dir2, vector<Blob> vec);
+	bool InitMesh(int meshSize, VECTOR3D origin, double meshLength, double meshWidth,VECTOR3D dir1, VECTOR3D dir2, Blob vec);
 	void DrawMesh(int meshSize);
-	//void UpdateMesh();
+	void UpdateMesh(Blob blob);
 	void SetMaterial(VECTOR3D ambient, VECTOR3D diffuse, VECTOR3D specular, double shininess);
 	void ComputeNormals();
 

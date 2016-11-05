@@ -38,7 +38,10 @@ public:
 	~VECTOR3D() {}	//empty
 
 	void Set(float newX, float newY, float newZ)
-	{	x=newX;	y=newY;	z=newZ;	}
+	{	x=newX;	y=newY;z=newZ;	}
+
+    void UpdateOnlyY(float newX, float newY, float newZ)
+    {	x=newX;	y+=newY;z=newZ;	}
 	
 	//Accessors kept for compatibility
 	void SetX(float newX) {x = newX;}

@@ -13,7 +13,7 @@ using namespace std;
 float CAMERA_X_COORD = 0.0;
 float CAMERA_Y_COORD = 0.0;
 float CAMERA_Z_COORD = 0.0;
-
+VECTOR3D camera;
 void draw_xyz();
 
 // Default Mesh Size
@@ -39,7 +39,7 @@ QuadMesh groundMesh(meshSize, 16.0);
 
 void clearTerrain() {
     vec.clear();
-    groundMesh.InitMesh(meshSize, origin, 32.0, 32.0, dir1v, dir2v, vec);
+    //groundMesh.InitMesh(meshSize, origin, 32.0, 32.0, dir1v, dir2v, vec);
 }
 
 void keyPressed(unsigned char key, int x, int y) {
@@ -142,7 +142,7 @@ void onMouseButton(int button, int state, int x, int y) {
     if (button == GLUT_LEFT_BUTTON) {
         leftMouseClicked = !leftMouseClicked;
         vec.push_back(Blob(width, height, mousePos.x, mousePos.z));
-        groundMesh.InitMesh(meshSize, origin, 32.0, 32.0, dir1v, dir2v, vec);
+        groundMesh.InitMesh(meshSize, origin, 32.0, 32.0, dir1v, dir2v, Blob(width, height, mousePos.x, mousePos.z));
     }
 
     glutPostRedisplay();
@@ -298,7 +298,7 @@ void initOpenGl() {// Setup viewport/projection.
     glEnable(GL_COLOR_MATERIAL);
     glEnable(GL_LIGHTING);
     groundMesh.SetMaterial(ambient,diffuse,specular,shininess);
-    groundMesh.InitMesh(meshSize, origin, 32.0, 32.0, dir1v, dir2v, vec);
+    groundMesh.InitMesh(meshSize, origin, 32.0, 32.0, dir1v, dir2v, Blob(0,0,0,0));
 
 }
 
