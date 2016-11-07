@@ -15,7 +15,6 @@
 #include <cmath>
 #include "main.h"
 #include "QuadMesh.h"
-#include <string>
 
 using namespace std;
 
@@ -32,7 +31,6 @@ float deltaAngleX = 0.0f;
 float deltaAngleY = 0.0f;
 int xOrigin = -1;
 int yOrigin = -1;
-
 bool isMouseCameraMode = false;
 
 int main(int argc, char **argv) {
