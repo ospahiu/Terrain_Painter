@@ -1,6 +1,14 @@
-//
-// Created by Olsi on 2016-11-03.
-//
+/**
+ * @file   Blob.cpp
+ * @Author Olsi Spahiu
+ * @date   November, 2016
+ * @brief  Assignment 2 source file.
+ *
+ * Program constructs and interactively manipulates a plane mesh model, by generating
+ * terrain. This was done as part of a programming assignment for CPS 511. Geometric
+ * transformations, shape modeling, and simple animation are required aspects of
+ * this assignment.
+ */
 
 #include "Blob.h"
 

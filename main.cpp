@@ -1,71 +1,78 @@
+/**
+ * @file   main.cpp
+ * @Author Olsi Spahiu
+ * @date   November, 2016
+ * @brief  Assignment 2 source file.
+ *
+ * Program constructs and interactively manipulates a plane mesh model, by generating
+ * terrain. This was done as part of a programming assignment for CPS 511. Geometric
+ * transformations, shape modeling, and simple animation are required aspects of
+ * this assignment.
+ */
+
 #include <iostream>
 #include <GL/freeglut.h>  // GLUT, includes glu.h and
 #include <cmath>
 #include "main.h"
 #include "QuadMesh.h"
-#include "VECTOR3D.h"
-#include "stdio.h"
+#include <string>
 
 using namespace std;
 
-//QuadMesh groundMesh;
-
-float CAMERA_X_COORD = 0.0;
-float CAMERA_Y_COORD = 0.0;
-float CAMERA_Z_COORD = 0.0;
-VECTOR3D camera;
-void draw_xyz();
-
-// Default Mesh Size
-int meshSize = 64;
-VECTOR3D mousePos;
 float height = 1.5;
+int meshSize = 128; // Default Mesh Size
 float width = 1.5;
 float theta = 0;
 float phi = 45;
 float zoom = 0.0;
-
-
+VECTOR3D camera(0.0, 0.0, 0.0);
+VECTOR3D mousePos;
 QuadMesh groundMesh(meshSize, 16.0);
+float deltaAngleX = 0.0f;
+float deltaAngleY = 0.0f;
+int xOrigin = -1;
+int yOrigin = -1;
+
+bool isMouseCameraMode = false;
 
 int main(int argc, char **argv) {
     glutInit(&argc, argv); // Initialize GLUT.
     glutInitWindowSize(SCREEN_WIDTH, SCREEN_HEIGHT); // Set the window's initial width & height.
     glutInitWindowPosition(WINDOW_SPAWN_X, WINDOW_SPAWN_Y); // Position the window's initial top-left corner.
     glutInitDisplayMode(GLUT_RGB | GLUT_DOUBLE | GLUT_DEPTH);
-    glutCreateWindow("Assignment 1"); // Create a window with the given title.
+    glutCreateWindow("Assignment 2"); // Create a window with the given title.
     initOpenGl(); // Initialize scene settings.
     glutDisplayFunc(display); // Register display callback handler for window re-paint
     glutReshapeFunc(reshape);
     glutPassiveMotionFunc(mouse_func);
     glutMouseFunc(onMouseButton);
-    // I/O and Animation.
-//    glutSpecialFunc(specialInput);
+    glutMotionFunc(mouseMove);
     glutSpecialUpFunc(specialInputUp);
     glutKeyboardFunc(keyPressed);
-//    glutKeyboardUpFunc(keyUp);
     glutTimerFunc(0, timer, 0);
     glutMainLoop(); // Enter the infinitely event-processing loop
     return 0;
 }
 
+/// Set camera opengl coordinates given the spherical coordinates.
+/// Adjusts camera according to given zenith, and azimuth angles,
+/// as well as radius from origin.
+/// @param double rho Radius from the origin.
+/// @param double phi Zenith angle with respect to origin.
+/// @param double rho Azimuth angle with respect to origin.
 void angleToCartesian(double rho, double phi, double theta) {
 
-    CAMERA_X_COORD = rho * sin(phi) * cos(theta);
-    CAMERA_Y_COORD = rho * cos(phi);
-    CAMERA_Z_COORD = rho * sin(phi) * sin(theta);
+    camera.SetX(rho * sin(phi) * cos(theta));
+    camera.SetY(rho * cos(phi));
+    camera.SetZ(rho * sin(phi) * sin(theta));
 
 }
 
+
 /// Mouse position event handler. Parameters are the current
 /// cartesian positiion of the mouse cursor over the glut window.
-void mouse_func(int x, int y)
-{
-
+void mouse_func(int x, int y) {
     mousePos = getOGLPos(x, y);
-//    cout<<mousePos.x;
-//    cout<<mousePos.y;
-//    cout<<mousePos.z<<endl;
     glutPostRedisplay();
 }
 
@@ -82,51 +89,18 @@ void display() {
     // Set up ground quad mesh
     groundMesh.ComputeNormals();
     groundMesh.DrawMesh(meshSize);
-    cout<<zoom<<endl;
     // Misc drawing
-    //draw_xyz();
     renderText();
     glFlush();  // Render now
     glutSwapBuffers();
 }
 
-/// Draw XYZ axis lines.
-/// @return void
-void draw_xyz() {// Quad mesh
-    glPushMatrix();
-    // apply rotations
-    glRotatef(0, 1.0, 0.0, 0.0);
-    glRotatef(0, 0.0, 1.0, 0.0);
-    glRotatef(0, 0.0, 0.0, 1.0);
-    // move the axes to the screen corner
-    glTranslatef(0.0, 0.0, 0.0);
-    // draw our axes
-    glBegin(GL_LINES);
-    // draw line for x axis
-    glColor3f(1.0, 0.0, 0.0);
-    glVertex3f(-20.0, 0.0, 0.0);
-    glVertex3f(20.0, 0.0, 0.0);
-    // draw line for y axis
-    glColor3f(0.0, 1.0, 0.0);
-    glVertex3f(0.0, -20.0, 0.0);
-    glVertex3f(0.0, 20.0, 0.0);
-    // draw line for Z axis
-    glColor3f(0.0, 0.0, 1.0);
-    glVertex3f(0.0, 0.0, -20.0);
-    glVertex3f(0.0, 0.0, 20.0);
-    glEnd();
-    // load the previous matrix
-    glPopMatrix();
-}
-
 /// Setup camera attributes.
 /// @return void
 void setupCamera() {
-    //double phi = 90* PI / 180;
-    //theta = 0* PI / 180;
     angleToCartesian(30.00, getRad(phi), getRad(theta));
-    gluLookAt(CAMERA_X_COORD, CAMERA_Y_COORD, CAMERA_Z_COORD, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0);
-    glScalef(0.75+zoom, 0.75+zoom, 0.75+zoom);
+    gluLookAt(camera.GetX(), camera.GetY(), camera.GetZ(), 0.0, 0.0, 0.0, 0.0, 1.0, 0.0);
+    glScalef(0.75 + zoom, 0.75 + zoom, 0.75 + zoom);
 }
 
 /// Convert degree angles to radians for computing radian
@@ -168,7 +142,8 @@ void renderText() {
     glLoadIdentity();
     glColor3f(1.0, 1.0, 1.0);
     glRasterPos2i(20, 600);
-    glutBitmapString(GLUT_BITMAP_HELVETICA_12, reinterpret_cast<const unsigned char *> (HELP_MENU_STRING));
+    const char *const text = isMouseCameraMode ? HELP_MENU_STRING_MOUSE_CAMERA : HELP_MENU_STRING;
+    glutBitmapString(GLUT_BITMAP_HELVETICA_12, reinterpret_cast<const unsigned char *> (text));
     glMatrixMode(GL_PROJECTION);
     glPopMatrix();
     glMatrixMode(GL_MODELVIEW);
@@ -213,8 +188,8 @@ void initOpenGl() {// Setup viewport/projection.
     glEnable(GL_LIGHTING);
 
     //First Plane Mesh initialization.
-    groundMesh.SetMaterial(ambient,diffuse,specular,shininess);
-    groundMesh.InitMesh(meshSize, origin, 32.0, 32.0, dir1v, dir2v, Blob(0,0,0,0));
+    groundMesh.SetMaterial(ambient, diffuse, specular, shininess);
+    groundMesh.InitMesh(meshSize, origin, 32.0, 32.0, dir1v, dir2v, Blob(0, 0, 0, 0));
 
 }
 
@@ -223,7 +198,7 @@ void initOpenGl() {// Setup viewport/projection.
 /// @return void
 void clearTerrain() {
     groundMesh.resetPlane();
-    groundMesh.InitMesh(meshSize, origin, 32.0, 32.0, dir1v, dir2v, Blob(0,0,0,0));
+    groundMesh.InitMesh(meshSize, origin, 32.0, 32.0, dir1v, dir2v, Blob(0, 0, 0, 0));
 }
 
 /// Timer function callable used to animate GLUT scene. Variable incrementing
@@ -241,20 +216,19 @@ void timer(int value) {
 /// cartesian coordinates.
 /// @param int x The x-position of the active mouse cursor.
 /// @param int y The y-position of the active mouse cursor.
-VECTOR3D getOGLPos(int x, int y)
-{
+VECTOR3D getOGLPos(int x, int y) {
     GLint viewport[4];
     GLdouble modelview[16];
     GLdouble projection[16];
     GLfloat winX, winY, winZ;
     GLdouble posX, posY, posZ;
-    glGetDoublev( GL_MODELVIEW_MATRIX, modelview );
-    glGetDoublev( GL_PROJECTION_MATRIX, projection );
-    glGetIntegerv( GL_VIEWPORT, viewport );
-    winX = (float)x;
-    winY = (float)viewport[3] - (float)y;
-    glReadPixels( x, int(winY), 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &winZ );
-    gluUnProject( winX, winY, winZ, modelview, projection, viewport, &posX, &posY, &posZ);
+    glGetDoublev(GL_MODELVIEW_MATRIX, modelview);
+    glGetDoublev(GL_PROJECTION_MATRIX, projection);
+    glGetIntegerv(GL_VIEWPORT, viewport);
+    winX = (float) x;
+    winY = (float) viewport[3] - (float) y;
+    glReadPixels(x, int(winY), 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &winZ);
+    gluUnProject(winX, winY, winZ, modelview, projection, viewport, &posX, &posY, &posZ);
     return VECTOR3D(posX, posY, posZ);
 }
 
@@ -266,32 +240,24 @@ VECTOR3D getOGLPos(int x, int y)
 void keyPressed(unsigned char key, int x, int y) {
     switch (tolower(key)) {
         case 'w':
-            if (phi > 5) {
-                phi -= 5;
-            }
+            phi -= phi > 5 ? 5 : 0;
             break;
         case 's':
-            if (phi < 90) {
-                phi+=5;
-            }
+            phi += phi < 90 ? 5 : 0;
             break;
         case 'a':
-            theta+=1;
+            theta += 1;
             break;
         case 'd':
-            theta-=1;
+            theta -= 1;
             break;
         case 'e':
-            if (zoom < 1.5) {
-                zoom += 0.05;
-            }
+            zoom += zoom < 1.5 ? 0.05 : 0;
             break;
         case 'q':
-            if (zoom > -0.5) {
-                zoom -= 0.05;
-            }
+            zoom -= zoom > -0.5 ? 0.05 : 0;
             break;
-        case 27:
+        case 27: // Escape
             clearTerrain();
             break;
         default:
@@ -304,8 +270,19 @@ void keyPressed(unsigned char key, int x, int y) {
 /// mouse click.
 void onMouseButton(int button, int state, int x, int y) {
     if (button == GLUT_LEFT_BUTTON) {
-        Blob blobToDeposit(width, height, mousePos.x, mousePos.z);
-        groundMesh.InitMesh(meshSize, origin, 32.0, 32.0, dir1v, dir2v, blobToDeposit);
+        if (!isMouseCameraMode) {
+            Blob blobToDeposit(width, height, mousePos.x, mousePos.z);
+            groundMesh.InitMesh(meshSize, origin, 32.0, 32.0, dir1v, dir2v, blobToDeposit);
+        } else {
+            if (state == GLUT_UP) {
+                xOrigin = -1;
+                yOrigin = -1;
+            } else {// state = GLUT_DOWN
+                xOrigin = x;
+                yOrigin = y;
+            }
+
+        }
     }
     glutPostRedisplay();
 }
@@ -318,29 +295,38 @@ void onMouseButton(int button, int state, int x, int y) {
 void specialInputUp(int key, int x, int y) {
     switch (key) {
         case GLUT_KEY_UP:
-            if (height < 3.0) {
-                height += 0.5;
-                cout<<"up pressed"<<endl;
-            }
+            height += height < 3.0 ? 0.5 : 0;
             break;
         case GLUT_KEY_DOWN:
-            if (height > - 3.0) {
-                height -= 0.5;
-                cout<<"down pressed"<<endl;
-            }
+            height -= height > -3.0 ? 0.5 : 0;
             break;
         case GLUT_LEFT_BUTTON:
-            if (width > - 12.0) {
-                width -= 3;
-            }
+            width -= width > -50.0 ? 10 : 0;
             break;
         case GLUT_RIGHT_BUTTON:
-            if (width < 12.0) {
-                width += 3;
-            }
+            width += width < 50.0 ? 10 : 0;
             break;
+        case GLUT_KEY_F1:
+            isMouseCameraMode = !isMouseCameraMode;
         default:
             break;
     }
     glutPostRedisplay();
+}
+
+/// Tracks continuous movement of mouse for camera information.
+/// Event handler used for updating phi/theta.
+/// @param int x Mouse x coordinate.
+/// @param int y Mouse y coordinate.
+/// @return void
+void mouseMove(int x, int y) {
+
+    // True when the left button is pressed.
+    if (xOrigin >= 0) {
+        // update delta's.
+        deltaAngleX = (x - xOrigin) * 0.01f;
+        theta += deltaAngleX;
+        deltaAngleY = (y - yOrigin) * 0.01f;
+        phi += deltaAngleY;
+    }
 }

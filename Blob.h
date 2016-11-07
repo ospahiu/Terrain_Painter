@@ -8,23 +8,32 @@
 
 class Blob {
 
-    public:
-        void setX(double x);
-        void setZ(double z);
-        void setWidth(double width);
-        void setHeight(double height);
-        double getX();
-        double getZ();
-        double getWidth();
-        double getHeight();
-        bool isEmpty();
-        Blob(float a, float b, float x, float z);
+public:
+    void setX(double x);
 
-    private:
-        float x_pos;
-        float z_pos;
-        float width;
-        float height;
+    void setZ(double z);
+
+    void setWidth(double width);
+
+    void setHeight(double height);
+
+    double getX();
+
+    double getZ();
+
+    double getWidth();
+
+    double getHeight();
+
+    bool isEmpty();
+
+    Blob(float a, float b, float x, float z);
+
+private:
+    float x_pos;
+    float z_pos;
+    float width;
+    float height;
 
 };
 

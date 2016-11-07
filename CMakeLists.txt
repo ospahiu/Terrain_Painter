@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.3)
 project(A2)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
-set(SOURCE_FILES main.cpp QuadMesh.cpp Plane.cpp Plane.h Blob.cpp Blob.h)
+set(SOURCE_FILES main.cpp QuadMesh.cpp Blob.cpp Blob.h)
 find_package(GLUT REQUIRED)
 include_directories(${GLUT_INCLUDE_DIRS})
 link_directories(${GLUT_LIBRARY_DIRS})
