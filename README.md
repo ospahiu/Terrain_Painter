@@ -67,4 +67,4 @@ Below are Windows instructions on how to compile, make, build, and run the progr
 
 ##Screenshot
 
-![Alt text](/<screenshots>/screenshot1.png?raw=true)
+![](http://i.imgur.com/fDIFsHk.png)
