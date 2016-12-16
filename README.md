@@ -65,5 +65,6 @@ Below are Windows instructions on how to compile, make, build, and run the progr
 
 4. To run the program double click on the 'A2.exe' file (*newly created in the root*).
 
-##Screenshots
+##Screenshot
 
+![Alt text](origin/<screenshots>/screenshot1.png?raw=true)
